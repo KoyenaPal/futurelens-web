@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Future Lens: Anticipating Subsequent Tokens from a Single Hidden State</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description"
+        content="" />
+    <meta property="og:title" content="Future Lens" />
+    <meta property="og:url" content="https://future.baulab.info/" />
+    <meta property="og:image" content="https://future.baulab.info/images/fv-thumb.png" />
+    <meta property="og:description" content="
+    We conjecture that hidden state vectors corresponding to individual input tokens encode information sufficient to accurately predict several tokens ahead.">
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Future Lens: Anticipating Subsequent Tokens from a Single Hidden State" />
+    <meta name="twitter:description"
+        content="Do hidden states in large language models (LLMs) encode tokens farther than a single token ahead? If so, how can we decode this sequence of tokens from a single state?" />
+    <meta name="twitter:image" content="https://future.baulab.info/images/fv-thumb.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Math&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+
+    <style>
+        .relatedthumb {
+            float: left;
+            width: 200px;
+            margin: 3px 10px 7px 0;
+        }
+
+        .relatedblock {
+            clear: both;
+            display: inline-block;
+        }
+
+        .bold-sc {
+            font-variant: small-caps;
+            font-weight: bold;
+        }
+
+        .cite,
+        .citegroup {
+            margin-bottom: 8px;
+        }
+
+        :target {
+            background-color: yellow;
+        }
+    </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FD12LWN557"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date()); gtag('config', 'G-FD12LWN557');
+    </script>
+
+</head>
+
+<body class="nd-docs">
+    <div class="nd-pageheader">
+        <div class="container">
+            <h1 class="lead">
+                <nobr class="widenobr">Anticipating Subsequent Tokens from a Single Hidden State</nobr>
+            </h1>
+            <address>
+                <nobr><a href="https://koyenapal.github.io/" target="_blank">Koyena Pal</a><sup>1</sup>,</nobr>
+                <nobr><a href="https://jiudingsun01.github.io/" target="_blank">Jiuding Sun<sup>1</sup></a>,</nobr>
+                <nobr><a href="https://www.linkedin.com/in/andrewwyuan/" target="_blank">Andrew Yuan<sup>2</sup></a>,</nobr>
+                <nobr><a href="https://www.byronwallace.com/" target="_blank">Byron C. Wallace<sup>1</sup></a>,</nobr>
+                <nobr><a href="https://baulab.info/" target="_blank">David Bau<sup>1</sup></a></nobr><br>
+                <nobr><sup>1</sup><a href="https://khoury.northeastern.edu/" target="_blank">Northeastern
+                    University</a>,</nobr>
+                    <nobr><sup>2</sup><a href="https://www.umass.edu/" target="_blank">UMass Amherst</a></nobr>
+            </address>
+        </div>
+    </div><!-- end nd-pageheader -->
+
+    <div class="container">
+        <div class="row justify-content-center" style="margin-bottom: 20px">
+        </div>
+        <div class="row justify-content-center text-center">
+
+            <p>
+                <a href="" class="d-inline-block p-3 align-top" target="_blank">
+                    <img height="100" width="78" src="images/paper-thumb.png" style="border:1px solid; margin: 0 38px;"
+                        alt="ArXiv Preprint thumbnail" data-nothumb="">
+                    <br>ArXiv<br>Preprint</a>
+                <a href="https://github.com/KoyenaPal/future-lens/" class="d-inline-block p-3 align-top" target="_blank">
+                    <img height="100" width="78" src="images/code-thumb.png" style="border:1px solid; margin: 0 38px;"
+                        alt="Github code thumbnail" data-nothumb="">
+                    <br>Source Code<br>
+                </a>
+            </p>
+
+            <div class="card" style="max-width: 1020px;">
+                <div class="card-block">
+                <h3>Do hidden states encode distant tokens?</h3>
+                <p>
+                    Auto-regressive transformer language models are typically trained to predict one token ahead, but
+                    recent work has hinted that individual hidden states may contain more information than just probabilities of the following token. 
+                    In this work we ask: <br><b>To what extent can we extract information about future
+                    tokens from a single hidden token representation?</b>
+                </p>
+                <figure class="center_image" style="margin-top: 30px">
+                    <img src="images/Paper/future_lens_example.png" class="bigfig">
+                    <figcaption>
+                        We used one of our decoding methods to create a tool called Future Lens.
+                        We applied this tool to the hidden states of GPT-J-6B processing <i>Marty McFly from</i>. 
+                        Each cell illustrates the most likely sequence of future tokens that the respective hidden state predicts. 
+                        The darker boxes correspond to higher probabilities/confidence. Notice that, by the time the transformer reads,
+                        <i>from</i>, it already knows that it wants to say <i>Back to the Future</i>.
+                    </figcaption>
+                </figure>
+                </div><!--card-block-->
+                </div><!--card-->
+
+        </div><!--row-->
+
+        <div class="row">
+            <div class="col">
+                
+                <h2>How did we decode future tokens?</h2>   
+                <p>
+                Each of our methods has the same goal: Extract accurate predictions of a model's probability 
+                distribution several tokens ahead, based on the information in only one hidden state at a single layer
+                at one token of the transformer.</p>
+
+                <h4>1. Linear Model Approximation</h4> 
+                <p>Extending the ideas of <i>Tuned Lens</i> and the <i>Logit Lens</i>, we train linear models to approximate future 
+                model predictions several tokens in the future, in order to reveal the extent to which
+                individual hidden states may directly encode subsequent tokens.</p>
+                <br>
+                <p class="text-center">
+                    <img id="linear" src="images/Paper/future_linear.png" class="smallfig">
+                    <figcaption>
+                        LLM to Linear Model Approximation
+                        Overview. Given a hidden state, 
+                        
+                        <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>, the linear model,
+                        <i>fθ</i> , is trained to output a future hidden state 
+                        <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T+1</sub></i>. In
+                        this example, <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>
+                        is the encoding that would lead to the
+                        prediction of 'New,' and <i>fθ</i> uses only that information
+                        to predict <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T+1</sub></i>
+                        that would predict 'York.'
+                        </figcaption>
+                </p>
+                
+                <h4>2. Fixed Prompt Causal Intervention</h4> 
+                <p>The next method we consider involves a single state causal intervention where we transplant the
+                    hidden state <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>
+                    into the transformer while it is decoding an unrelated bit of context. The question is
+                    whether this transplantation steers the model to generate tokens related to the prefix that induced 
+                    <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>.
+                    If it does, this indicates that information about subsequent tokens (in the original sequence) is prominently encoded in 
+                    <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>. </p>
+                <br>
+                <p class="text-center">
+                    <img id="linear" src="images/Paper/future_fixed_prompt.png" class="medfig">
+                    <figcaption>
+                        Illustration of Fixed prompt Causal Intervention. 
+                        The left and right sides represent two different transformer model runs. 
+                        On the left hand side, we have the original run of <i>Madison Square Garden ... in New York</i>. 
+                        We transplant the hidden state, <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>
+                         to the other transformer model run, which has a fixed generic context, <i>Tell me something about</i>, 
+                         as its input. With <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i> replacing the hidden state at 
+                         <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>M</sub></i>, 
+                         we measure the tendency of this modified transformer run to reveal the 
+                         probability distribution in <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>L</sub></i>. 
+                         In such cases, it would reveal that <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>L</sub></i> was predicting, for instance, `New York City.'
+                        </figcaption>
+                </p>
+
+                <h4>3. Learned Prompt Causal Intervention</h4> 
+                <p>In cases where the previous method 'fails', it does not necessarily mean that the 
+                    hidden state does not encode similar information; it may just be less prominent. 
+                    To evaluate the degree to which such signal is present in these cases, we explore an approach 
+                    in which we <i>learn</i> to surface information about subsequent tokens from individual contextual token embeddings.
+                <br>
+                <p class="text-center">
+                    <img id="linear" src="images/Paper/future_soft_prompt.png" class="medfig">
+                    <figcaption>
+                        Learned context prompt Causal Intervention Overview. The left and right sides represent two different
+                        transformer model runs. The general setup is the same as the Fixed Prompt Causal Intervention. The difference lies in the context provided in the
+                    transformer run on the right hand side. Instead of manually thinking of a context, we provide a learned context to
+                    increase the tendency of decoding the subsequent tokens predicted by <i>h<sup>l</sup><sub style='position: relative; left: -.5em; top: +.5em'>T</sub></i>. 
+                    We do so by training the context, <i>c</i>, with
+                    <i>L<sub>KL</sub></i> criterion and the objective to match the subsequent token prediction, such as 'York' in this instance.
+
+                </figcaption>
+                </p>
+
+
+                    
+                <h2>Related Work</h2>
+                
+                <p>Our work builds upon insights in other work that has examined ways to predict the next token from intermediate layers:</p>
+
+                
+                
+                
+                <!-- <h3>Transformer Mechanisms</h3> -->
+                <p class="citation"><a href="https://arxiv.org/pdf/2303.08112.pdf"><img src="images/belrose-2023.png" alt="belrose-2023">Nora Belrose, Zach Furman, Logan Smith, Danny Halawi, Igor Ostrovsky, Lev McKinney, Stella Biderman, Jacob Steinhardt. Eliciting Latent Predictions from Transformers with the Tuned Lens. 2023.</a><br>
+                <b>Notes:</b> Analyzes transformers from the perspective of iterative inference, seeking to understand how model predictions are refined layer by layer.
+                </p>                
+                
+                <p class="citation"><a href="https://arxiv.org/pdf/2303.09435.pdf"><img src="images/din-2023.png" alt="din-2023">Alexander Yom Din, Taelin Karidi, Leshem Choshen, Mor Geva. Jump to Conclusions: Short-Cutting Transformers With Linear Transformations. 2023.</a><br>
+                <b>Notes:</b> Proposes a method for casting hidden representations across transformer layers by using linear transformations. It allows 'peeking' into early layer representations of GPT-2 and BERT, showing
+                that often LMs already predict the final output in early layers.
+                </p>      
+                <p class="citation"><a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens"><img src="images/logit-lens.png" alt="nostalgebraist-2020"> nostalgebraist. interpreting GPT: the logit lens. 2020.</a><br>
+                <b>Notes:</b> An early technique to view GPT's internals by directly decoding hidden states into vocabulary space using the model's pretrained unembedding matrix.
+                </p>
+                <!-- <h3>Task Representations</h3> -->
+                <!-- <p class="citation"><a href=""><img src="" alt=""> </a><br>
+                <b>Notes:</b> 
+                </p>  -->
+
+	
+                <h2>How to cite</h2>
+
+                <p>The preprint can be cited as follows.
+                </p>
+
+                <div class="card">
+                    <h3 class="card-header">bibliography</h3>
+                    <div class="card-block">
+                        <p style="text-indent: -3em; margin-left: 3em;" class="card-text clickselect">
+                            Koyena Pal, Jiuding Sun, Andrew Yuan, Byron C. Wallace, and David Bau. "<em>Future Lens: Anticipating Subsequent Tokens from a Single Hidden State</em>" SIGNLL 
+                            Conference on Computational Natural Language Learning (CoNLL)<nobr><a
+                                    href=""></a> (2023).</nobr>
+                        </p>
+                    </div>
+                    <h3 class="card-header">bibtex</h3>
+                    <div class="card-block">
+                        <pre class="card-text clickselect">
+@article{pal2023future,
+    title={Future Lens: Anticipating Subsequent Tokens from a Single Hidden State},
+    author={Koyena Pal and Jiuding Sun and Andrew Yuan and Byron C. Wallace and David Bau},
+    journal={SIGNLL Conference on Computational Natural Language Learning (CoNLL)},
+    year={2023}
+    }</pre>
+                    </div>
+                </div>
+                <!-- </p> -->
+
+            <!-- </div> -->
+            </div> <!--col -->    
+        </div> <!--row -->
+    </div> <!-- container -->
+
+    
+
+    <footer class="nd-pagefooter">
+        <div class="row">
+            <div class="col-6 col-md text-center">
+                <a href="https://baulab.info/">About the Bau Lab</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+<script>
+    $(document).on('click', '.clickselect', function (ev) {
+        var range = document.createRange();
+        range.selectNodeContents(this);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    });
+</script>
+
+</html>
