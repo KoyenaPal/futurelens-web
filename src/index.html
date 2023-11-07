@@ -112,7 +112,28 @@
                     In this work we ask: <br><b>To what extent can we extract information about future
                     tokens from a single hidden token representation?</b>
                 </p>
-                <figure class="center_image" style="margin-top: 30px">
+                </div><!--card-block-->
+                </div><!--card-->
+
+        </div><!--row-->
+
+        <div class="row">
+            <div class="col">
+                  <h2>The Future Lens</h2>
+
+                  <p
+                  >Each cell in the visualization represents a single hidden state of
+                  the transformer at a single token and a single layer.  Although the
+                  transformer is trained to only predict a single token ahead, we perform
+                  a multi-token decoding based only on the information within that
+                  single hidden state, revealing, for example, not only that the model
+                  has predicted the next word <em>Back</em>, but that it contains an encoding
+                  of the entire phrase <em>Back to the Future</em> at certain layers within
+                  the model. Our method reveals that many hidden states do contain
+                  information about predicted context several tokens in the future.
+
+              <div class="text-center">
+                    <figure class="center_image">
                     <img src="images/Paper/future_lens_example.png" class="bigfig">
                     <figcaption>
                         We used one of our decoding methods to create a tool called Future Lens.
@@ -122,13 +143,7 @@
                         <i>from</i>, it already knows that it wants to say <i>Back to the Future</i>.
                     </figcaption>
                 </figure>
-                </div><!--card-block-->
-                </div><!--card-->
-
-        </div><!--row-->
-
-        <div class="row">
-            <div class="col">
+                </div>
                 
                 <h2>How did we decode future tokens?</h2>   
                 <p>
@@ -142,7 +157,8 @@
                 individual hidden states may directly encode subsequent tokens.</p>
                 <br>
                 <p class="text-center">
-                    <img id="linear" src="images/Paper/future_linear.png" class="smallfig">
+                    <img id="linear" src="images/Paper/future_linear.png" class="smallfig"
+                        style="max-width: 320px">
                     <figcaption>
                         LLM to Linear Model Approximation
                         Overview. Given a hidden state, 
@@ -216,11 +232,11 @@
                 <b>Notes:</b> Analyzes transformers from the perspective of iterative inference, seeking to understand how model predictions are refined layer by layer.
                 </p>                
                 
-                <p class="citation"><a href="https://arxiv.org/pdf/2303.09435.pdf"><img src="images/din-2023.png" alt="din-2023">Alexander Yom Din, Taelin Karidi, Leshem Choshen, Mor Geva. Jump to Conclusions: Short-Cutting Transformers With Linear Transformations. 2023.</a><br>
+                <p class="citation"><a href="https://arxiv.org/pdf/2303.09435.pdf"><img src="images/din-2023.png" alt="din-2023" style="max-height: 200px">Alexander Yom Din, Taelin Karidi, Leshem Choshen, Mor Geva. Jump to Conclusions: Short-Cutting Transformers With Linear Transformations. 2023.</a><br>
                 <b>Notes:</b> Proposes a method for casting hidden representations across transformer layers by using linear transformations. It allows 'peeking' into early layer representations of GPT-2 and BERT, showing
                 that often LMs already predict the final output in early layers.
                 </p>      
-                <p class="citation"><a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens"><img src="images/logit-lens.png" alt="nostalgebraist-2020"> nostalgebraist. interpreting GPT: the logit lens. 2020.</a><br>
+                <p class="citation"><a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens"><img src="images/logit-lens.png" alt="nostalgebraist-2020" style="max-height: 200px"> nostalgebraist. interpreting GPT: the logit lens. 2020.</a><br>
                 <b>Notes:</b> An early technique to view GPT's internals by directly decoding hidden states into vocabulary space using the model's pretrained unembedding matrix.
                 </p>
                 <!-- <h3>Task Representations</h3> -->
