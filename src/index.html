@@ -122,16 +122,17 @@
                   <h2>The Future Lens</h2>
 
                   <p
-                  >Each cell in the visualization represents a single hidden state of
+                  >Each cell in the visualization here represents a single hidden state of
                   the transformer at a single token and a single layer.  Although the
                   transformer is trained to only predict a single token ahead, we perform
                   a multi-token decoding based only on the information within that
-                  single hidden state, revealing, for example, not only that the model
-                  has predicted the next word <em>Back</em>, but that it contains an encoding
+                  single hidden state, revealing, for example, that after the text
+                  "Marty McFly from", the model has not only has predicted the next
+                  word <em>Back</em>, but that it also contains an encoding
                   of the entire phrase <em>Back to the Future</em> at certain layers within
-                  the model. Our method reveals that many hidden states do contain
-                  information about predicted context several tokens in the future.
-
+                  the model. We find that our method reveals that this is very common:
+                  many hidden states do contain information about predicted context
+                  several tokens in the future.
               <div class="text-center">
                     <figure class="center_image">
                     <img src="images/Paper/future_lens_example.png" class="bigfig">
