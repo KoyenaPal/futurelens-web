@@ -1,6 +1,6 @@
 COPY_FILES = $(patsubst src/%,output/%,$(wildcard src/*) $(wildcard src/*/*))
 
-all: $(COPY_FILES) \
+all: deploy \
 
 output/%: src/%
 	echo $@
